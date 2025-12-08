@@ -8,7 +8,7 @@ version = "0.2.1"
 description = "Run heavy tools in Docker or via an API from Jupyter notebooks"
 classifiers = [
   "Framework :: IPython",
-  "FRAMEWORK :: Jupyter",
+  "Framework :: Jupyter",
   "Intended Audience :: Developers",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.12",
