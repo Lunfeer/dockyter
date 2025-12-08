@@ -29,4 +29,6 @@ authors = [
 [dependency-groups]
 dev = [
     "ipykernel>=7.1.0",
+    "nbconvert>=7.16.6",
+    "pytest>=9.0.2",
 ]
