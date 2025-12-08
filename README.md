@@ -1,12 +1,22 @@
 # Dockyter
 
-Dockyter is an IPython extension that adds a `%%docker` cell magic and optional `!` redirection so that you can run CLI tools packaged as Docker images from inside notebooks, while keeping the base Python environment light.
+Dockyter is an IPython extension that adds:
+
+- a `%%docker` **cell magic** to run whole cells inside Docker containers,
+- an optional `!` **shell redirection** so that `!cmd` runs inside Docker,
+- and a **pluggable backend** system:
+  - **local Docker daemon** (default),
+  - or a **remote HTTP API** backend.
+
+The goal is to run heavy CLI tools packaged as Docker images from notebooks,
+while keeping the base Python environment light and reproducible.
 
 Typical use cases:
 
-- running heavy tools (ML frameworks, data validators, internal CLIs) from Docker images,
+- running ML frameworks, data validation tools, or internal CLIs from Docker images,
 - keeping notebook kernels small and simple,
-- using the same Dockerised tools across local Jupyter, JupyterHub, and private Binder deployments.
+- using the same Dockerised tools across local Jupyter, JupyterHub, and Binder-like deployments,
+- delegating container execution to a remote HTTP API instead of the local Docker daemon.
 
 ---
 
@@ -22,7 +32,125 @@ Then in a notebook:
 %load_ext dockyter
 ```
 
-Dockyter expects a working `docker` CLI on `PATH` and access to a Docker-compatible daemon (or rootless runtime) in order to actually run containers.
+By default, Dockyter expects:
+
+* a working `docker` CLI on `PATH`, and
+* access to a Docker-compatible daemon (or rootless runtime)
+
+in order to run containers with the **Docker backend**.
+
+If you use the **API backend**, the Docker daemon can live on a separate machine:
+Dockyter just talks HTTP to your API.
+
+---
+
+## Backends: Docker daemon vs HTTP API
+
+Dockyter has two backends:
+
+* **Docker backend** (default)
+  Runs containers by calling the local `docker` CLI:
+
+  ```bash
+  docker run --rm [ARGS] IMAGE bash -lc "cmd"
+  ```
+
+* **API backend**
+  Sends commands to an HTTP API that you implement and manage.
+
+You can switch backend at runtime:
+
+```python
+# Use local Docker daemon (default)
+%docker_backend docker
+
+# Use HTTP API backend
+%docker_backend api http://127.0.0.1:8000
+```
+
+The current backend and status can be inspected with:
+
+```python
+%docker_status
+```
+
+This prints:
+
+* which backend is active (`Docker` or `API`),
+* whether it appears available,
+* the current Docker arguments (image, volumes, etc.),
+* whether `!` redirection is enabled.
+
+---
+
+## API backend contract
+
+The API backend is intentionally small and simple.
+Dockyter only assumes **two endpoints**:
+
+1. **Health check**
+
+   ```http
+   GET /health
+   ```
+
+   * Must return a **2xx** status code if the backend is available.
+   * Response body is ignored by Dockyter.
+
+2. **Command execution**
+
+   ```http
+   POST /execute
+   Content-Type: application/json
+   ```
+
+   Request body:
+
+   ```json
+   {
+     "cmd": "echo hello",
+     "args": "ubuntu:22.04 -v /host:/data"
+   }
+   ```
+
+   Response body (JSON):
+
+   ```json
+   {
+     "stdout": "hello",
+     "stderr": ""
+   }
+   ```
+
+Dockyter:
+
+* passes the **entire cell** or `!` command as `cmd`,
+* passes the raw `%docker` / `%%docker` arguments as `args`,
+* prints `stdout` to the notebook,
+* prints `stderr` in **red** if not empty.
+
+What happens inside the API is entirely up to you. A typical implementation:
+
+* receives `cmd` and `args`,
+* constructs a `docker run ...` command on the server,
+* captures `stdout` / `stderr`,
+* returns them in JSON.
+
+But the API **does not have to use Docker** internally; it could use Kubernetes, a job queue, or anything else — Dockyter only cares about the HTTP contract above.
+
+### Security responsibility
+
+Dockyter **does not** implement any security for the API backend.
+
+* Authentication, authorisation, rate limiting, logging, etc. are entirely the responsibility of the API owner.
+* The example API server in this repository is **not** intended for exposure on the public internet. It is a minimal reference implementation for local / trusted environments.
+* A real deployment must:
+
+  * protect the API (auth, HTTPS),
+  * control which images and arguments are allowed,
+  * run on a hardened host.
+
+Dockyter only provides a convenient **client** for this API from inside notebooks; it is **not** a security boundary.
 
 ---
 
@@ -45,6 +173,11 @@ All lines share the same shell state:
 
 This is the recommended way to run anything non-trivial in Docker from a notebook.
 
+The same syntax works with both backends:
+
+* Docker backend → runs `docker run ...` locally.
+* API backend → sends `cmd` and `args` to `POST /execute`.
+
 ---
 
 ### Line magic: `%docker` + `!` redirection
@@ -62,21 +195,20 @@ Then:
 Here `%docker` **configures** Dockyter:
 
 * Docker arguments and image are stored,
-* subsequent `!cmd` calls in that notebook are rerouted to:
+* subsequent `!cmd` calls in that notebook are rerouted to the active backend:
 
-```bash
-docker run --rm [ARGS] IMAGE bash -lc "cmd"
-```
+  * Docker backend → `docker run --rm [ARGS] IMAGE bash -lc "cmd"`
+  * API backend → `POST /execute` with `cmd="cmd"` and `args="[ARGS] IMAGE"`
 
 Important behaviour:
 
-* each `!cmd` runs in a **fresh container**,
+* each `!cmd` runs in a **fresh container** (or fresh backend execution),
 * shell state is **not** shared between `!` calls:
 
   ```python
   %docker myimage:latest
   !cd /data
-  !pwd   # runs in a new container → not in /data
+  !pwd   # runs in a new container. Not in /data
   ```
 
 For anything that relies on `cd`, multi-line shell logic, or persistent state, prefer `%%docker`.
@@ -87,10 +219,12 @@ For anything that relies on `cd`, multi-line shell logic, or persistent state, p
 ## Commands
 
 * `%%docker [DOCKER ARGS...] IMAGE[:TAG]`
-  Run the cell content in a single Docker container with the given image/arguments.
+  Run the cell content in a single Docker container with the given image/arguments,
+  using the currently selected backend.
 
 * `%docker [DOCKER ARGS...] IMAGE[:TAG]`
-  Configure “Docker mode” for `!` so that each `!cmd` is executed inside a container. (docker_on is activated automatically)
+  Configure “Docker mode” for `!` so that each `!cmd` is executed inside a container
+  via the currently selected backend. (`%docker_on` is effectively activated.)
 
 * `%docker_off`
   Restore the original `!` behaviour (no Docker redirection).
@@ -99,48 +233,100 @@ For anything that relies on `cd`, multi-line shell logic, or persistent state, p
   Activate Docker mode for `!` again, using the last configured image/arguments.
 
 * `%docker_status`
-  Show whether Docker mode is enabled and which image/arguments are currently configured.
+  Show the current backend type, its availability, whether `!` redirection is enabled,
+  and which image/arguments are currently configured.
+
+* `%docker_backend docker`
+  Use the local Docker daemon backend. (call %docker_status automatically after)
+
+* `%docker_backend api <URL>`
+  Use an HTTP API backend at the given base URL (for example `http://127.0.0.1:8000`). (call %docker_status automatically after)
 
 ---
 
-## Behaviour when Docker is not available
+## Binder / JupyterHub integration (high-level)
 
-If the `docker` CLI is not found on `PATH`, or `docker info` fails, Dockyter:
+In BinderHub / JupyterHub, Dockyter can be used in a few ways:
 
-* prints a clear message (e.g. “Docker is not installed or not available in the system PATH.”),
-* does **not** crash the kernel,
-* leaves the `!` behaviour unchanged.
+### 1. Extension-only (safest default)
 
-This makes it safe to include Dockyter in environments where Docker is not available (for example, many public Binder deployments): notebooks will still run, but `%%docker` will simply report that Docker is unavailable.
+- Install `dockyter` in the image (e.g. via `requirements.txt`).
+- Users do `%load_ext dockyter` in notebooks.
+- If `docker` is not available in the container, Dockyter just reports it and does not crash.
 
----
+This is the right choice for **public / untrusted** notebook environments.
 
-## Private Binder / JupyterHub integration (high-level)
+### 2. Direct Docker daemon access (trusted only)
 
-In a **private BinderHub / JupyterHub** deployment, Dockyter can be integrated at two levels:
+You can expose a Docker runtime inside user containers and use the **Docker backend**.
 
-1. **Extension-only (safe default)**
+This is **very dangerous** for public notebooks:
 
-   * Install `dockyter` into the image built by repo2docker (e.g. via `requirements.txt`).
-   * Users can `"%load_ext dockyter"` in their notebooks.
-   * If no `docker` CLI is available inside the user container, Dockyter just prints its “Docker not available” message and does not crash.
+- Users can bypass Dockyter and run `!docker ...` directly,
+- including flags like `--privileged` or `--network=host`.
 
-2. **Docker-enabled profiles (advanced, trusted users)**
+Only consider this if users are trusted and the platform is carefully locked down.
 
-   * The JupyterHub/Binder admin provides a special notebook image that includes:
+### 3. API backend (recommended for untrusted users)
 
-     * `dockyter`, and
-     * a container runtime (Docker or rootless Podman) accessible from the user container.
-   * Only selected profiles/kernels get this image.
-   * In those environments, `%%docker` and `%docker` can actually launch containers, while isolation and resource limits are still enforced at the JupyterHub/Binder infrastructure level.
+A safer option for public or multi-tenant setups:
 
-Dockyter itself is **not** a security sandbox. Even if dockyter filters out some dangerous Docker flags, a malicious user with access to `docker` inside their container could still escape it. Real isolation must be handled by the surrounding platform (JupyterHub/Binder, Kubernetes, etc.). Dockyter only adds in-kernel guardrails and convenience. 
+- Do **not** expose `docker` in user containers.
+- Run a separate, hardened Dockyter-compatible **API backend**.
+- In notebooks, use:
+
+```python
+  %docker_backend api https://your-secure-api.example.com
+```
+
+The API is then responsible for all security (auth, allowed images/flags, rate limiting, etc.).
+
+Dockyter is **not** a security boundary; it only provides convenience and light guardrails.
+Real isolation must come from the surrounding platform or the API implementation.
 
 ---
 
 ## Examples
 
-* `examples/01_local_cli.ipynb` – Run simple commands in a local Docker image (`%%docker` basics).
-* `examples/02_ml_tool_in_docker.ipynb` – Use a real ML framework (e.g. PyTorch) inside Docker, keeping the notebook kernel light.
+This repository includes several example notebooks and an example API server:
 
-(Additional examples, such as Binder-like environments or local Databricks Connect workflows, can be added under `examples/` as the project evolves.)
+* `docs/exemples/01_local_cli.ipynb`
+  Run simple commands in a **local Docker image** (`%%docker` basics).
+
+* `docs/exemples/02_ml_tool_in_docker.ipynb`
+  Use a real ML framework (e.g. PyTorch) inside Docker, keeping the notebook kernel light.
+
+* `docs/exemples/03_api_backend.ipynb`
+  Use Dockyter with the **API backend**, switching with `%docker_backend api` and running
+  commands via the HTTP API instead of the local Docker daemon.
+
+* `docs/api_example/server.py`
+  Minimal example of a Dockyter-compatible API implemented with FastAPI + Uvicorn.
+  This is a reference implementation for local / trusted environments only.
+
+---
+
+## Tests
+
+Dockyter has:
+
+* **Unit tests** for:
+
+  * `DockerBackend` and `APIBackend` (using monkeypatch for `subprocess` / `requests`),
+  * the IPython magics layer.
+
+* **Integration tests** that:
+
+  * execute the example notebooks via `nbconvert`,
+  * start the example API server for API backend tests,
+  * fail if Dockyter prints error messages in red.
+
+You can run them locally with:
+
+```bash
+# Unit tests only
+uv run pytest -m "not integration"
+
+# Full test suite (including notebook + API integration)
+uv run pytest
+```
