@@ -32,3 +32,13 @@ dev = [
     "nbconvert>=7.16.6",
     "pytest>=9.0.2",
 ]
+api-exemple = [
+    "fastapi>=0.124.0",
+    "pydantic>=2.12.5",
+    "uvicorn>=0.38.0",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: mark tests as integration tests",
+]
