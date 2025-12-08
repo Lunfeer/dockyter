@@ -18,10 +18,18 @@ class Dockyter(Magics):
         print(f"\033[91m{message}\033[0m")
 
     def print_outputs(self, result: CommandResult):
-        if result.stdout:
+        has_stdout = bool(result.stdout)
+        has_stderr = bool(result.stderr)
+
+        if has_stdout:
             print(result.stdout)
-        if result.stderr:
-            self.print_error(result.stderr)
+
+        if has_stderr:
+            if not has_stdout:
+                self.print_error(result.stderr)
+            else:
+                print(result.stderr)
+
 
     def docker_console(self, cmd):
         result = self.backend.dockyter_command(cmd, self.docker_args)
