@@ -71,20 +71,20 @@ class Dockyter(Magics):
 
 
     @line_magic("docker")
-    def docker_line(self, line: str):
+    def docker_line_magic(self, line: str):
         self.docker_args = line
 
         ip = get_ipython()
         if ip is not None:
             self.original_system = ip.system
-            self.docker_on()
+            self.docker_on_magic()
             result = self.backend.dockyter_command("echo 'Connected'", args=line)
             self.print_outputs(result)
         else:
             self.print_error("Could not access IPython instance to reroute '!' commands.")
 
     @line_magic("docker_on")
-    def docker_on(self, line: str = ""):
+    def docker_on_magic(self, line: str = ""):
         ip = get_ipython()
         if ip is not None:
             self.original_system = ip.system
@@ -94,7 +94,7 @@ class Dockyter(Magics):
             self.print_error("Could not access IPython instance to reroute '!' commands.")
 
     @line_magic("docker_off")
-    def docker_off(self, line: str = ""):
+    def docker_off_magic(self, line: str = ""):
         ip = get_ipython()
         if ip is not None and self.original_system is not None:
             ip.system = self.original_system
@@ -103,6 +103,6 @@ class Dockyter(Magics):
             self.print_error("Could not access IPython instance to restore original '!' behavior.")
 
     @cell_magic("docker")
-    def docker_cell(self, line: str, cell):
+    def docker_cell_magic(self, line: str, cell):
         result = self.backend.dockyter_command(cell, args=line)
         self.print_outputs(result)

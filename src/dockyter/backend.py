@@ -24,15 +24,12 @@ def validate_docker_args(args: str):
 
 class DockerBackend:
     def docker_exist(self):
-        result = subprocess.run(["docker", "info"], capture_output=True, text=True)
+        result = subprocess.run(["docker"], capture_output=True, text=True)
         return result.returncode == 0
     
     def docker_daemon_running(self):
         result = subprocess.run(["docker", "info"], capture_output=True, text=True)
-        stderr = result.stderr.lower()
-        if "failed to connect" in stderr or "daemon" in stderr:
-            return False
-        return True
+        return result.returncode == 0
     
     def get_status(self):
         is_docker_available = self.docker_exist()
@@ -51,8 +48,8 @@ class DockerBackend:
             result.stderr = docker_status
             return result
 
-        is_valid, bad_flag_message = validate_docker_args(args)
-        if is_valid == False: 
+        ok, bad_flag_message = validate_docker_args(args)
+        if ok == False: 
             result.stderr = bad_flag_message
             return result
         
@@ -97,8 +94,8 @@ class APIBackend:
             result.stderr = api_status
             return result
 
-        is_valid, bad_flag_message = validate_docker_args(args)
-        if is_valid == False: 
+        ok, bad_flag_message = validate_docker_args(args)
+        if ok == False: 
             result.stderr = bad_flag_message
             return result
         
