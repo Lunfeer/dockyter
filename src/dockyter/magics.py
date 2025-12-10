@@ -1,6 +1,7 @@
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic)
 from IPython.core.getipython import get_ipython
 from .backend import DockerBackend, APIBackend, CommandResult
+from .config import load_config
 
 BACKEND_MODE_DOCKER = "docker"
 BACKEND_MODE_API = "api"
@@ -9,10 +10,15 @@ BACKEND_MODE_API = "api"
 class Dockyter(Magics):
     def __init__(self, shell=None, **kwargs):
         super().__init__(shell=shell, **kwargs)
-        self.docker_args: str = ""
         self.original_system = None
         self.docker_reroute_enabled = False
-        self.backend = DockerBackend()
+        
+        self.dockyter_config = load_config()
+        self.docker_args: str = self.dockyter_config.default_args
+        if (self.dockyter_config.backend_mode == BACKEND_MODE_API and self.dockyter_config.api_url != ""):
+            self.backend = APIBackend(self.dockyter_config.api_url)
+        else:
+            self.backend = DockerBackend()
 
     def print_error(self, message: str):
         print(f"\033[91m{message}\033[0m")
@@ -77,6 +83,24 @@ class Dockyter(Magics):
 
         self.print_error(f"Unknown backend. Use {BACKEND_MODE_DOCKER} or {BACKEND_MODE_API}.")
 
+    @line_magic("docker_profile")
+    def docker_profile_magic(self, line: str):
+        name = line.strip()
+
+        if not name:
+            if self.dockyter_config.profiles:
+                available = ", ".join(sorted(self.dockyter_config.profiles.keys()))
+                self.print_error(f"Usage: %docker_profile <name>. Available profiles: {available}")
+            else:
+                self.print_error("Usage: %docker_profile <name>. No profiles configured.")
+            return
+
+        args = self.dockyter_config.profiles.get(name)
+        if not args:
+            self.print_error(f"No args found for docker profile '{name}'.")
+            return
+
+        self.docker_line_magic(args)
 
     @line_magic("docker")
     def docker_line_magic(self, line: str):
