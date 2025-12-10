@@ -242,6 +242,55 @@ For anything that relies on `cd`, multi-line shell logic, or persistent state, p
 * `%docker_backend api <URL>`
   Use an HTTP API backend at the given base URL (for example `http://127.0.0.1:8000`). (call %docker_status automatically after)
 
+* `%docker_profile NAME`
+  Load a named profile from the config file (see below) to set image/arguments for `%docker`.
+
+---
+
+## Configuration file (optional)
+
+Dockyter can read an optional `dockyter.toml` configuration file to choose:
+
+- which backend to use by default (`docker` vs `api`),
+- default Docker arguments (image, volumes, etc.),
+- named profiles for `%docker_profile`.
+
+Dockyter looks for the first config file in this order:
+
+1. The path given by the `DOCKYTER_CONFIG` environment variable.
+2. `dockyter.toml` in the current working directory.
+3. `~/.dockyter.toml`
+4. `~/.config/dockyter/config.toml`
+
+The first file found wins. If no file is found, built-in defaults are used.
+
+Example `dockyter.toml`:
+
+```toml
+[backend]
+mode = "api"                         # "docker" or "api"
+api_url = "http://127.0.0.1:8000"    # required for "api"
+
+[docker]
+default_args = "-v /tmp:/tmp ubuntu:22.04"
+
+[profiles]
+local = "-v /tmp:/tmp ubuntu:22.04"
+ml    = "--gpus all -v /data:/data pytorch/pytorch:latest"
+```
+
+With this file in place:
+
+* `%load_ext dockyter` will automatically use the API backend and `default_args`.
+
+* `%docker_profile local` is equivalent to:
+
+  ```python
+  %docker ubuntu:22.04 -v /tmp:/tmp
+  ```
+
+* `%docker_profile ml` configures Dockyter to use the ML image/profile.
+
 ---
 
 ## Binder / JupyterHub integration (high-level)
@@ -300,6 +349,10 @@ This repository includes several example notebooks and an example API server:
   Use Dockyter with the **API backend**, switching with `%docker_backend api` and running
   commands via the HTTP API instead of the local Docker daemon.
 
+* `docs/examples/04_config_profiles.ipynb`
+  Demonstrates the `dockyter.toml` configuration file and the `%docker_profile` magic
+  for reusable Docker argument profiles.
+  
 * `docs/api_example/server.py`
   Minimal example of a Dockyter-compatible API implemented with FastAPI + Uvicorn.
   This is a reference implementation for local / trusted environments only.
