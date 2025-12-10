@@ -22,8 +22,8 @@ jobs:
       - name: Install Python
         run: uv python install 3.12
 
-      - name: Sync dependencies (dev + api-exemple)
-        run: uv sync --group dev --group api-exemple
+      - name: Sync dependencies (dev + api-example)
+        run: uv sync --group dev --group api-example
 
       - name: Run all tests (unit + intégration)
         run: uv run pytest

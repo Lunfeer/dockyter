@@ -290,13 +290,13 @@ Real isolation must come from the surrounding platform or the API implementation
 
 This repository includes several example notebooks and an example API server:
 
-* `docs/exemples/01_local_cli.ipynb`
+* `docs/examples/01_local_cli.ipynb`
   Run simple commands in a **local Docker image** (`%%docker` basics).
 
-* `docs/exemples/02_ml_tool_in_docker.ipynb`
+* `docs/examples/02_ml_tool_in_docker.ipynb`
   Use a real ML framework (e.g. PyTorch) inside Docker, keeping the notebook kernel light.
 
-* `docs/exemples/03_api_backend.ipynb`
+* `docs/examples/03_api_backend.ipynb`
   Use Dockyter with the **API backend**, switching with `%docker_backend api` and running
   commands via the HTTP API instead of the local Docker daemon.
 

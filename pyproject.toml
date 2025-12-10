@@ -32,7 +32,7 @@ dev = [
     "nbconvert>=7.16.6",
     "pytest>=9.0.2",
 ]
-api-exemple = [
+api-example = [
     "fastapi>=0.124.0",
     "pydantic>=2.12.5",
     "uvicorn>=0.38.0",

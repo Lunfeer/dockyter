@@ -6,7 +6,7 @@ from nbconvert.preprocessors import ExecutePreprocessor
 
 RED_ANSI = "\x1b[91m"
 RESET_ANSI = "\x1b[0m"
-NOTEBOOK_DIR = Path("docs/exemples")
+NOTEBOOK_DIR = Path("docs/examples")
 API_URL = "http://127.0.0.1:8000"
 
 @pytest.fixture(scope="session")
