@@ -109,7 +109,7 @@ Dockyter only assumes **two endpoints**:
    ```json
    {
      "cmd": "echo hello",
-     "args": "ubuntu:22.04 -v /host:/data"
+     "args": "-v /host:/data ubuntu:22.04"
    }
    ```
 
@@ -286,7 +286,7 @@ With this file in place:
 * `%docker_profile local` is equivalent to:
 
   ```python
-  %docker ubuntu:22.04 -v /tmp:/tmp
+  %docker -v /tmp:/tmp ubuntu:22.04
   ```
 
 * `%docker_profile ml` configures Dockyter to use the ML image/profile.
