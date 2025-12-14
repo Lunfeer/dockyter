@@ -1,5 +1,14 @@
 # Dockyter
 
+<!-- Optional: badges -->
+[![CI](https://github.com/Lunfeer/dockyter/actions/workflows/ci.yml/badge.svg)](https://github.com/Lunfeer/dockyter/actions/workflows/ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/dockyter.svg)](https://pypi.org/project/dockyter/)
+[![License](https://img.shields.io/pypi/l/dockyter.svg)](https://github.com/Lunfeer/dockyter/blob/main/LICENSE)
+
+<p align="center">
+  <img src="docs/media/dockyter-banner.png" alt="Dockyter banner" width="600">
+</p>
+
 Dockyter is an IPython extension that adds:
 
 - a `%%docker` **cell magic** to run whole cells inside Docker containers,
@@ -17,6 +26,25 @@ Typical use cases:
 - keeping notebook kernels small and simple,
 - using the same Dockerised tools across local Jupyter, JupyterHub, and Binder-like deployments,
 - delegating container execution to a remote HTTP API instead of the local Docker daemon.
+
+---
+
+## Highlights
+
+- IPython / Jupyter magics:
+  - `%%docker` cell magic
+  - `%docker` + `!` shell redirection
+- Pluggable backends:
+  - local Docker daemon
+  - HTTP API backend (FastAPI example included)
+- Configurable via `dockyter.toml`:
+  - default backend and Docker args
+  - named profiles via `%docker_profile`
+- Tested:
+  - unit tests (backends + magics)
+  - integration tests that execute real notebooks and the example API
+- Automatic releases:
+  - GitHub Actions build and publish to PyPI on tagged releases
 
 ---
 
@@ -335,6 +363,16 @@ Real isolation must come from the surrounding platform or the API implementation
 
 ---
 
+## Documentation
+
+- **User guide** – Installation, basic usage, troubleshooting  
+  `docs/user-guide.md`
+
+- **Developer guide** – Architecture, code layout, style, tests  
+  `docs/developer-guide.md`
+
+---
+
 ## Examples
 
 This repository includes several example notebooks and an example API server:
@@ -356,6 +394,12 @@ This repository includes several example notebooks and an example API server:
 * `docs/api_example/server.py`
   Minimal example of a Dockyter-compatible API implemented with FastAPI + Uvicorn.
   This is a reference implementation for local / trusted environments only.
+
+Exemples are also on nbviewer:
+  - **Local CLI**: https://nbviewer.org/github/Lunfeer/dockyter/blob/main/docs/examples/01_local_cli.ipynb  
+  - **ML in Docker**: https://nbviewer.org/github/Lunfeer/dockyter/blob/main/docs/examples/02_ml_tool_in_docker.ipynb  
+  - **API backend**: https://nbviewer.org/github/Lunfeer/dockyter/blob/main/docs/examples/03_api_backend.ipynb  
+  - **Config profiles**: https://nbviewer.org/github/Lunfeer/dockyter/blob/main/docs/examples/04_config_profiles.ipynb
 
 ---
 
@@ -383,3 +427,26 @@ uv run pytest -m "not integration"
 # Full test suite (including notebook + API integration)
 uv run pytest
 ```
+
+## Contributing
+
+Contributions are welcome !
+
+- Fork the repository and create a feature branch.
+- Keep changes small and focused (one feature or fix per pull request).
+- Make sure tests pass locally:
+
+  ```bash
+  # Unit tests only
+  uv run pytest -m "not integration"
+
+  # Full test suite (notebooks + API example)
+  uv run pytest
+  ```
+
+* If you change behaviour or add features, consider:
+
+* updating / adding example notebooks under `docs/examples/`,
+* updating the user/developer guides under `docs/`.
+
+Open a pull request on GitHub once everything is green.
