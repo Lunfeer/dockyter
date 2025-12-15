@@ -8,6 +8,9 @@
 <p align="center">
   <img src="docs/media/dockyter-banner.png" alt="Dockyter banner" width="600">
 </p>
+<p align="center">
+  <sub>Banner created with Canva AI.</sub>
+</p>
 
 Dockyter is an IPython extension that adds:
 
@@ -371,6 +374,9 @@ Real isolation must come from the surrounding platform or the API implementation
 - **Developer guide** – Architecture, code layout, style, tests  
   `docs/developer-guide.md`
 
+- **Sources & references** – External resources used while building Dockyter  
+  `docs/sources.md`
+
 ---
 
 ## Examples
@@ -445,8 +451,13 @@ Contributions are welcome !
   ```
 
 * If you change behaviour or add features, consider:
-
-* updating / adding example notebooks under `docs/examples/`,
-* updating the user/developer guides under `docs/`.
+  * updating / adding example notebooks under `docs/examples/`,
+  * updating the user/developer guides under `docs/`.
+  * updating the sources in `docs/sources.md`.
 
 Open a pull request on GitHub once everything is green.
+
+## Acknowledgements
+
+Parts of this documentation (README, user guide, developer guide) were drafted
+with the help of ChatGPT (OpenAI) and then reviewed and edited by myself.
