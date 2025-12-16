@@ -23,7 +23,7 @@ jobs:
         run: uv python install 3.12
 
       - name: Sync dependencies (dev + api-example)
-        run: sync --group dev --group api-example
+        run: uv sync --group dev --group api-example
 
       - name: Run all tests (unit + intégration)
         run: uv run pytest --cov=src/dockyter --cov-report=xml
