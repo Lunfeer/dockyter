@@ -95,4 +95,13 @@ This document lists the main external resources consulted while implementing Doc
 30. Pytest documentation – **`tmp_path` fixture**
     https://docs.pytest.org/en/stable/how-to/tmp_path.html
 
+31. Codecov – **Codecov GitHub integration**
+    https://app.codecov.io/github/Lunfeer/dockyter/new/circle-ci
+
+32. Codecov documentation – **Merging reports in GitHub Actions**
+    https://docs.codecov.com/docs/github-4a-merging-reports
+
+33. Codecov documentation – **Setting coverage standards with flags**
+    https://docs.codecov.com/docs/github-5b-setting-coverage-standards-with-flags
+
 31. ChatGPT (OpenAI) – Help drafting and refining the documentation (README, user guide, developer guide).
