@@ -2,6 +2,7 @@
 
 <!-- Optional: badges -->
 [![CI](https://github.com/Lunfeer/dockyter/actions/workflows/ci.yml/badge.svg)](https://github.com/Lunfeer/dockyter/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/Lunfeer/dockyter/branch/main/graph/badge.svg)](https://codecov.io/gh/Lunfeer/dockyter)
 [![PyPI version](https://img.shields.io/pypi/v/dockyter.svg)](https://pypi.org/project/dockyter/)
 [![License](https://img.shields.io/pypi/l/dockyter.svg)](https://github.com/Lunfeer/dockyter/blob/main/LICENSE)
 
