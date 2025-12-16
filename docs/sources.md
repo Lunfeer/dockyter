@@ -92,4 +92,7 @@ This document lists the main external resources consulted while implementing Doc
 29. Python documentation – **`dataclasses`**  
     https://docs.python.org/3/library/dataclasses.html
 
-30. ChatGPT (OpenAI) – Help drafting and refining the documentation (README, user guide, developer guide).
+30. Pytest documentation – **`tmp_path` fixture**
+    https://docs.pytest.org/en/stable/how-to/tmp_path.html
+
+31. ChatGPT (OpenAI) – Help drafting and refining the documentation (README, user guide, developer guide).
