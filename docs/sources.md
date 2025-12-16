@@ -104,4 +104,4 @@ This document lists the main external resources consulted while implementing Doc
 33. Codecov documentation – **Setting coverage standards with flags**
     https://docs.codecov.com/docs/github-5b-setting-coverage-standards-with-flags
 
-31. ChatGPT (OpenAI) – Help drafting and refining the documentation (README, user guide, developer guide).
+34. ChatGPT (OpenAI) – Help drafting and refining the documentation (README, user guide, developer guide).
