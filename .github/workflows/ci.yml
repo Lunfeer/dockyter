@@ -26,4 +26,12 @@ jobs:
         run: uv sync --group dev
 
       - name: Run unit tests (without integration tests)
-        run: uv run pytest -m "not integration"
+        run: uv run pytest -m "not integration" --cov=src/dockyter --cov-report=xml
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}

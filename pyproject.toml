@@ -36,6 +36,7 @@ dev = [
     "ipykernel>=7.1.0",
     "nbconvert>=7.16.6",
     "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
 ]
 api-example = [
     "fastapi>=0.124.0",

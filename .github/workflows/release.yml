@@ -23,10 +23,18 @@ jobs:
         run: uv python install 3.12
 
       - name: Sync dependencies (dev + api-example)
-        run: uv sync --group dev --group api-example
+        run: uv run pytest --cov=src/dockyter --cov-report=xml
 
       - name: Run all tests (unit + intégration)
         run: uv run pytest
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.xml
+          flags: alltests
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   build-and-publish:
     name: Build and publish to PyPI
